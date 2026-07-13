@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="Solarpool">
+	<Header page="obras"/>
+
+<div class="page-body page-container-label-1 page-calculate-map">
+<script type="module" src="/js/map.js"></script>
+ 
+<customer-map style="height:60vh"></customer-map>
+<small style="display:block;text-align:center">NOTA: como medida de protección de la privacidad de nuestros clientes, la posición de los marcadores es sólo aproximada </small> 
+</div>
+
+<!-- Map End -->
+    
+        <Footer/>
+</Layout>

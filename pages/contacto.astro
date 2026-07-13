@@ -1,0 +1,189 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="Solarpool">
+	<Header page="contacto"/>
+        <!-- Header Start -->
+        <div class="container-fluid page-banner-contacto bg-breadcrumb grey">
+            <div class="container text-center py-5">
+                <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Contacto</h4>  
+            </div>
+        </div>
+        <!-- Header End -->
+
+
+        <!-- Contact Start -->
+        <div class="container-fluid contact bg-light py-5">
+            <div class="container py-5">
+                <div class="text-center mx-auto pb-5 wow fadeInUp" data-wow-delay="0.2s" style="max-width: 800px;">
+                    <h1 class="display-4 mb-4">Información de Contacto</h1>
+                </div>
+                <div class="row g-5">
+                    <div class="col-xl-6 wow fadeInLeft" data-wow-delay="0.2s">
+                        <div class="contact-img d-flex justify-content-center" >
+                            <div class="contact-img-inner">
+                                <img src="/img/contact-img.png" class="img-fluid w-100"  alt="Image">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-6 wow fadeInRight" data-wow-delay="0.4s">
+                        <div>
+                            <h4 class="text-primary">Formulario de Contacto</h4>
+                            <p class="mb-4">Complete nuestro formulario de contacto y un asesor solarpool® le responderá en breve.</p>
+                            <form id="contact-form" class="needs-validation" novalidate>
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control border-0" id="name" placeholder="Su Nombre" required>
+                                            <label for="name">Su Nombre</label>
+                                            <div class="invalid-feedback">El dato es requerido</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="email" class="form-control border-0" id="email" placeholder="Su e-Mail" required>
+                                            <label for="email">Su e-Mail</label>
+                                            <div class="invalid-feedback">Ingrese un e-mail válido</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="phone" class="form-control border-0" id="phone" placeholder="Phone" required>
+                                            <label for="phone">Su Teléfono</label>
+                                            <div class="invalid-feedback">El dato es requerido</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control border-0" id="subject" placeholder="Asunto" required>
+                                            <label for="subject">Asunto</label>
+                                            <div class="invalid-feedback">El dato es requerido</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <textarea class="form-control border-0 " placeholder="Escriba su mensaje aquí" id="message" required></textarea>
+                                            <label for="message">Mensaje</label>
+                                            <div class="invalid-feedback">El dato es requerido</div>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-8">
+                                                <div id="contact-form-hp-question" class="form-text mb-2">&nbsp;</div>
+                                                <input type="text" class="form-control" name="captcha" placeholder="Respuesta" aria-label="Captcha" required>
+                                                <input type="hidden" id="contact-form-hp-expected" name="hp_expected" value="">
+                                            </div>
+                                            <div class="col-4">
+                                                <button type="button" onclick="submitToAPI(event);" class="btn btn-primary w-100 py-3">Enviar Mensaje</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            <script is:inline>
+                                function initHumanProof(formId) {
+                                    const a = Math.floor(Math.random() * 8) + 1;
+                                    const b = Math.floor(Math.random() * 8) + 1;
+                                    const q = document.getElementById(formId + '-hp-question');
+                                    const hidden = document.getElementById(formId + '-hp-expected');
+                                    if (q) q.textContent = `¿Cuánto es ${a} + ${b}?`;
+                                    if (hidden) hidden.value = String(a + b);
+                                }
+
+                                function submitToAPI(e) {
+                                    e.preventDefault();
+                                    var URL = "https://api.solarpool.com.ar/near/contact";
+                                    let form = document.querySelector("#contact-form");
+                                    let inputs = Array.from(form.querySelectorAll("*[name]"));
+                                    let data = inputs.reduce((map, input) => { map[input.name] = input.value; return map; }, {});
+                                    const expected = form.querySelector('#contact-form-hp-expected')?.value;
+                                    const answer = form.querySelector('input[name="captcha"]')?.value;
+                                    if (!expected || !answer || String(answer).trim() !== String(expected).trim()) { alert('Por favor responda correctamente la pregunta de verificación humana.'); initHumanProof(form.id); return false; }
+                                    data["_origin"] = document.referrer || window.location.hash || window.location.pathname;
+                                    fetch(URL, { method: "POST", body: JSON.stringify(data), mode: "no-cors", headers: { "Content-Type": "application/json; charset=utf-8" } })
+                                      .then((res) => res.text())
+                                      .catch((error) => { alert("Ops! por favor intente nuevamente!"); console.log(error); })
+                                      .then((response) => { console.log(response); form.innerHTML="Su solicitud fue enviada. Responderemos a la brevedad"; return false; });
+                                }
+
+                                document.addEventListener('DOMContentLoaded', function(){ initHumanProof('contact-form'); });
+                            </script>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid contact py-5">
+            <div class="container py-5">
+                <div class="row g-5">
+                    <div class="col-12">
+                        <div>
+                            <div class="row g-4">
+                                <div class="col-md-6 col-lg-3 wow fadeInUp" data-wow-delay="0.2s">
+                                    <div class="contact-add-item">
+                                        <div class="contact-icon text-primary mb-4">
+                                            <i class="fas fa-map-marker-alt fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h4>Dirección</h4>
+                                            <p class="mb-0">Av. Federico Lacroze 3765 9 D (1427) CABA</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 wow fadeInUp" data-wow-delay="0.4s">
+                                    <div class="contact-add-item">
+                                        <div class="contact-icon text-primary mb-4">
+                                            <i class="fas fa-envelope fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h4>e-Mail</h4>
+                                            <p class="mb-0"><a href="mailto:info@solarpool.com.ar">info@solarpool.com.ar</a></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 wow fadeInUp" data-wow-delay="0.6s">
+                                    <div class="contact-add-item">
+                                        <div class="contact-icon text-primary mb-4">
+                                            <i class="fa fa-phone-alt fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h4>Teléfonos</h4>
+                                            <p class="mb-0"><a href="tel:+541145529903"><small>(+54 11)</small> 4552 9903</a><br><a href="tel:+541147748354"><small>(+54 11)</small> 4774 8354</a></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 wow fadeInUp" data-wow-delay="0.8s">
+                                    <div class="contact-add-item">
+                                        <div class="contact-icon text-primary mb-4">
+                                            <i class="fa fa-clock fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h4>Horario</h4>
+                                            <p class="mb-0">Lunes a Viernes de 8:30 a 17:30 hs.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 wow fadeInUp" data-wow-delay="0.2s">
+                        <div class="rounded contact-map">
+                            <iframe class="rounded w-100" 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3284.839145398997!2d-58.45541682358809!3d-34.58293645640226!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5e60b04f565%3A0x7d5691f1afe9b057!2sFederico%20Lacroze%203765%2C%20C1427%20Cdad.%20Aut%C3%B3noma%20de%20Buenos%20Aires!5e0!3m2!1ses!2sar!4v1721258657081!5m2!1ses!2sar" 
+                            loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- Contact End -->
+         <Footer />
+</Layout>

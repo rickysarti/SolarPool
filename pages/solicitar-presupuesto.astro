@@ -1,0 +1,302 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="Solicitar Presupuesto">
+	<Header page="presupuesto"/>
+<!-- Header Start -->
+        <div class="container-fluid page-banner-solicitud bg-breadcrumb grey">
+            <div class="container text-center py-5">
+                <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Solicitar Presupuesto</h4>
+            </div>
+        </div>
+        <!-- Header End -->
+
+
+        <!-- Contact Start -->
+        <div class="container-fluid contact bg-light py-5">
+            <div class="container py-5">
+
+                <div class="row g-5 justify-content-center">
+
+                    <div class="col-xl-8 wow fadeInRight" data-wow-delay="0.4s">
+
+                        <div class="mb-5">
+                            <h4 class="text-primary">Presupuestos</h4>
+                            <h1 class="display-4 mb-0">Dimensione la calefacción de su pileta</h1>
+                            <p class="mb-0">Por favor complete este formulario con la mayor cantidad de detalles para que podamos evaluar su proyecto y ponernos en contacto con usted</p>
+                        </div>
+
+                        <div>
+
+                            <form id="budget-form" class="needs-validation" novalidate>
+                                <div class="row g-3 mb-5">
+                                    <div class="col-12">
+                                        <h4>Datos personales</h4>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control border-0" id="name" placeholder="Su Nombre" required>
+                                            <label for="name">Su Nombre</label>
+                                            <div class="invalid-feedback">El dato es requerido</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="email" class="form-control border-0" id="email" placeholder="Su e-Mail" required>
+                                            <label for="email">Su e-Mail</label>
+                                            <div class="invalid-feedback">Ingrese un e-mail válido</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="phone" class="form-control border-0" id="phone" placeholder="Phone" required>
+                                            <label for="phone">Su Teléfono</label>
+                                            <div class="invalid-feedback">El dato es requerido</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mb-5">
+                                    <div class="col-12">
+                                        <h4>Datos del generales</h4>
+                                    </div>
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control border-0" id="provincia" placeholder="Provincia">
+                                            <label for="provincia">Provincia</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control border-0" id="localidad" placeholder="Localidad">
+                                            <label for="localidad">Localidad</label>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control border-0" id="pileta" placeholder="pileta">
+                                            <label for="localidad">Pileta <small>ej: 8x4 m</small></label>
+                                            <span class="form-question" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="Superficie de la pileta o sus dimensiones." data-bs-original-title="" title=""><i class="bi bi-question-circle-fill"></i></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control border-0" id="sombra" placeholder="sombra">
+                                            <label for="localidad">Sombra <small>ej: porcentaje de bomba</small></label>
+                                            <span class="form-question" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="Estime el porcentaje de sombra que tiene la pileta durante las 6 horas del medio del día para el mes que quiera comenzar a utilizar la pileta." data-bs-original-title="" title=""><i class="bi bi-question-circle-fill"></i></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <textarea class="form-control border-0 form-area-small" id="techo" placeholder="Techo"></textarea>
+                                            <label for="localidad">Techo <small>ej: techo de teja francesa...</small></label>
+                                            <span class="form-question" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="Por favor indique cual es el material , la pendiente, hacia donde miran las caras del techo. El material del techo es importante. (chapa metálica, membrana, tejas de francesa, de cemento, tejuela de asfalto chapa de fibrocemento, etc.).<br><br>Los techos que miran al sur con caídas típicas (más de 30°) no tienen mucho sol en Argentina. No se puede instalar el sistema de calefacción solar en estos techos." data-bs-original-title="" title=""><i class="bi bi-question-circle-fill"></i></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <textarea class="form-control border-0 form-area-small" id="canerias" placeholder="Cañerías"></textarea>
+                                            <label for="canerias">Cañerías</label>
+                                            <span class="form-question" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="Piense como hacer llegar caños de 40 o 50 mm de diámetro desde el la bomba/filtro de la pileta hasta el punto más bajo del techo. Estime la distancia de la instalación. No se preocupe por la estética. En general los enterramos o ocultamos. Realice todos los comentarios que quiera sobre este tema." data-bs-original-title="" title=""><i class="bi bi-question-circle-fill"></i></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control border-0" id="altura" placeholder="Altura de los paneles">
+                                            <label for="altura">Altura de los paneles <small>(Metros)</small></label>
+                                            <span class="form-question" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="La diferencia de nivel entre la superficie de la pileta y el techo en metros y en forma aproximada." data-bs-original-title="" title=""><i class="bi bi-question-circle-fill"></i></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="mb-2">¿Utiliza o usará en verano?</div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="usoRadio" id="usoRadio1">
+                                            <label class="form-check-label" for="usoRadio1">
+                                                Cerramiento (es pileta cubierta)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="usoRadio" id="usoRadio2" checked>
+                                            <label class="form-check-label" for="usoRadio2">
+                                                Otro tipo de cubierta (manta térmica)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="usoRadio" id="usoRadio3" checked>
+                                            <label class="form-check-label" for="usoRadio3">
+                                                No usaré nada
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-12 col-xl-12">
+                                        <div class="form-floating">
+                                            <textarea class="form-control border-0 form-area-small" id="tamano" placeholder="¿Qué panel entra en su techo?"></textarea>
+                                            <label for="tamano">¿Qué panel entra en su techo?</label>
+                                            <span class="form-question" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="En promedio, necesitamos un 65 % de la superficie de la pileta libre sobre el techo de su casa. Los paneles solares vienen en 4 medidas, 1,3 x 2.4 metros, 1,3 x 3 metros, 1,3 x 3.6 metros y 1.3 x 4.25 metros . Necesitamos además 20 cm más para poder fijarlos." data-bs-original-title="" title=""><i class="bi bi-question-circle-fill"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mb-5">
+                                    <div class="col-12">
+                                        <h4>Bomba de filtrado</h4>
+                                    </div>
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control border-0" id="potencia" placeholder="Potencia de la bomba">
+                                            <label for="potencia">Potencia de la bomba <small>(HP)</small></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 col-xl-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control border-0" id="sombra" placeholder="Marca y modelo de la bomba">
+                                            <label for="localidad">Marca y modelo de la bomba <small>ej: Vulkano 3/4</small></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-12 col-xl-12">
+                                        <div class="form-floating">
+                                            <textarea class="form-control border-0 form-area-small" id="hidromasaje" placeholder="¿Su pileta tiene un hidromasaje?"></textarea>
+                                            <label for="hidromasaje">¿Su pileta tiene un hidromasaje?</label>
+                                            <span class="form-question" data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="¿El hidromasaje usa la misma bomba que la pileta para accionar los jets o posee una bomba independiente? ¿El hidromasaje desborda en la pileta?" data-bs-original-title="" title=""><i class="bi bi-question-circle-fill"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mb-5">
+                                    <div class="col-12">
+                                        <h4>Datos adicionales (opcional)</h4>
+                                        <p>En esta área puede detallar aspectos importantes a tener en cuenta</p>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <textarea class="form-control border-0 form-area-large" placeholder="Escriba su mensaje aquí" id="detalles"></textarea>
+                                            <label for="detalles">Detalles</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 text-center">
+                                        <div class="row g-2 justify-content-center align-items-center">
+                                            <div class="col-lg-8">
+                                                <div id="budget-form-hp-question" class="form-text mb-2">&nbsp;</div>
+                                                <input type="text" class="form-control" name="captcha" placeholder="Respuesta" aria-label="Captcha" required>
+                                                <input type="hidden" id="budget-form-hp-expected" name="hp_expected" value="">
+                                            </div>
+                                            <div class="col-lg-4 text-center">
+                                                <button type="button" class="btn btn-primary rounded-pill py-3 px-5" onclick="submitToAPI(event);">Enviar Solicitud</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </form>
+                            <script is:inline>
+                                function initHumanProof(formId) {
+                                    const a = Math.floor(Math.random() * 8) + 1;
+                                    const b = Math.floor(Math.random() * 8) + 1;
+                                    const q = document.getElementById(formId + '-hp-question');
+                                    const hidden = document.getElementById(formId + '-hp-expected');
+                                    if (q) q.textContent = `¿Cuánto es ${a} + ${b}?`;
+                                    if (hidden) hidden.value = String(a + b);
+                                }
+
+                                function submitToAPI(e) {
+                                    e.preventDefault();
+                                    var URL = "https://api.solarpool.com.ar/near/contact";
+                                    let form = document.querySelector("#budget-form");
+                                    let inputs = Array.from(form.querySelectorAll("*[name]"));
+                                    let data = inputs.reduce((map, input) => { map[input.name] = input.value; return map; }, {});
+                                    const expected = form.querySelector('#budget-form-hp-expected')?.value;
+                                    const answer = form.querySelector('input[name="captcha"]')?.value;
+                                    if (!expected || !answer || String(answer).trim() !== String(expected).trim()) { alert('Por favor responda correctamente la pregunta de verificación humana.'); initHumanProof(form.id); return false; }
+                                    data["_origin"] = document.referrer || window.location.hash || window.location.pathname;
+                                    fetch(URL, { method: "POST", body: JSON.stringify(data), mode: "no-cors", headers: { "Content-Type": "application/json; charset=utf-8" } })
+                                      .then((res) => res.text())
+                                      .catch((error) => { alert("Ops! por favor intente nuevamente!"); console.log(error); })
+                                      .then((response) => { console.log(response); form.innerHTML="<h3>Su solicitud fue enviada. Responderemos a la brevedad</h3>"; window.location="#top"; return false; });
+                                }
+
+                                document.addEventListener('DOMContentLoaded', function(){ initHumanProof('budget-form'); });
+                            </script>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid contact py-5">
+            <div class="container py-5">
+                <div class="row g-5">
+                    <div class="col-12">
+                        <div>
+                            <div class="row g-4">
+                                <div class="col-md-6 col-lg-3 wow fadeInUp" data-wow-delay="0.2s">
+                                    <div class="contact-add-item">
+                                        <div class="contact-icon text-primary mb-4">
+                                            <i class="fas fa-map-marker-alt fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h4>Dirección</h4>
+                                            <p class="mb-0">Av. Federico Lacroze 3765 9 D (1427) CABA</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 wow fadeInUp" data-wow-delay="0.4s">
+                                    <div class="contact-add-item">
+                                        <div class="contact-icon text-primary mb-4">
+                                            <i class="fas fa-envelope fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h4>e-Mail</h4>
+                                            <p class="mb-0"><a href="mailto:info@solarpool.com.ar">info@solarpool.com.ar</a></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 wow fadeInUp" data-wow-delay="0.6s">
+                                    <div class="contact-add-item">
+                                        <div class="contact-icon text-primary mb-4">
+                                            <i class="fa fa-phone-alt fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h4>Teléfonos</h4>
+                                            <p class="mb-0"><a href="tel:+541145529903"><small>(+54 11)</small> 4552 9903</a><br><a href="tel:+541147748354"><small>(+54 11)</small> 4774 8354</a></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 wow fadeInUp" data-wow-delay="0.8s">
+                                    <div class="contact-add-item">
+                                        <div class="contact-icon text-primary mb-4">
+                                            <i class="fa fa-clock fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h4>Horario</h4>
+                                            <p class="mb-0">Lunes a Viernes de 8:30 a 17:30 hs.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 wow fadeInUp" data-wow-delay="0.2s">
+                        <div class="rounded contact-map">
+                            <iframe class="rounded w-100" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3284.839145398997!2d-58.45541682358809!3d-34.58293645640226!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5e60b04f565%3A0x7d5691f1afe9b057!2sFederico%20Lacroze%203765%2C%20C1427%20Cdad.%20Aut%C3%B3noma%20de%20Buenos%20Aires!5e0!3m2!1ses!2sar!4v1721258657081!5m2!1ses!2sar" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- Contact End -->
+    <Footer/>
+</Layout>

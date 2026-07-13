@@ -1,0 +1,274 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import Header from '../../../../components/Header.astro';
+import Footer from '../../../../components/Footer.astro';
+import {
+  cobertores,
+  formatARS,
+  mpUrl,
+  WHATSAPP,
+  slugMedida,
+  type CobertorPagina,
+} from '../../../../lib/cobertores.ts';
+
+export function getStaticPaths() {
+  return cobertores.map((page) => ({
+    params: { slug: page.slug },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props as { page: CobertorPagina };
+const { medida, espesor, precio, enStock } = page;
+
+const PRECIO_LIST = '/productos/cobertores-solares-termicos/precio';
+const CALEFACCION = '/productos/calefaccion-solar/';
+const BOMBA = '/productos/bomba-de-calor/';
+const CONTACTO = '/contacto/';
+
+// Espesor alternativo (para cross-sell entre las 300 y 400 de la misma medida)
+const otroEsp = espesor === 300 ? 400 : 300;
+const otroPrecio = otroEsp === 300 ? medida.p300 : medida.p400;
+const otroSlug = slugMedida(medida, otroEsp);
+
+const esColor = espesor === 400;
+const acc = esColor ? '#1a7a4a' : '#0062cc';
+const accDark = esColor ? '#145c38' : '#004aad';
+const btnClass = esColor ? 'btn-success' : 'btn-primary';
+const textClass = esColor ? 'text-success' : 'text-primary';
+
+// Botón de compra online
+const compraUrl = enStock && precio?.mp ? mpUrl(precio.mp) : null;
+
+// JSON-LD Product para rich results en Google
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: `${page.keyword} ${medida.label} · ${espesor} micrones`,
+  description: page.description,
+  image: new URL(page.heroImg, Astro.site).href,
+  brand: { '@type': 'Brand', name: 'Midwest Canvas' },
+  category: 'Cobertores solares térmicos para piletas',
+  ...(enStock && precio
+    ? {
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'ARS',
+          price: precio.transferencia,
+          availability: 'https://schema.org/InStock',
+          url: new URL(Astro.url.pathname, Astro.site).href,
+          seller: { '@type': 'Organization', name: 'Solarpool' },
+        },
+      }
+    : {}),
+};
+
+const beneficios = [
+  { icon: 'fa-thermometer-half', t: 'Ahorra hasta 70%', d: `Retiene el calor del agua durante la noche y reduce el gasto en calefacción de tu ${page.pool}.` },
+  { icon: 'fa-tint', t: 'Conserva el agua', d: 'Evita la evaporación, reduciendo significativamente el consumo de agua y el rellenado.' },
+  { icon: 'fa-flask', t: '35–60% menos químicos', d: 'Menos evaporación significa menos pérdida de cloro y productos químicos.' },
+  { icon: 'fa-broom', t: 'Menos limpieza', d: 'Evita que tierra, hojas e impurezas caigan al agua mientras no usás la pileta.' },
+];
+---
+
+<Layout title={page.title} description={page.description} image={page.heroImg}>
+  <Header page="cobertores-solares" />
+
+  <!-- Hero -->
+  <div
+    class="container-fluid page-banner-productos"
+    style={`position:relative;background-image:linear-gradient(rgba(0,20,40,0.72),rgba(0,20,40,0.82)),url(${page.heroImg});background-size:cover;background-position:center;`}>
+    <div class="container text-center py-5 product-header">
+      <div class="col-lg-9 mx-auto wow fadeInUp">
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb justify-content-center mb-0" style="--bs-breadcrumb-divider-color:rgba(255,255,255,.6);">
+            <li class="breadcrumb-item"><a href="/productos/cobertores-solares-termicos/" class="text-white text-decoration-none opacity-75">Cobertores</a></li>
+            <li class="breadcrumb-item"><a href={PRECIO_LIST} class="text-white text-decoration-none opacity-75">Precios</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">{medida.label} · {espesor} µm</li>
+          </ol>
+        </nav>
+        <div class="d-flex justify-content-center gap-2 flex-wrap mb-3">
+          <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,.15);font-size:.9rem;"><i class="fas fa-ruler-combined me-1"></i> {medida.label}</span>
+          <span class="badge rounded-pill px-3 py-2" style={`background:${acc};font-size:.9rem;`}><i class="fas fa-layer-group me-1"></i> {espesor} micrones</span>
+          {esColor && <span class="badge rounded-pill px-3 py-2" style="background:#ffd700;color:#1a3a00;font-size:.85rem;font-weight:700;">⭐ Mayor calidad</span>}
+        </div>
+        <h1 class="display-2 text-white fw-bold mb-3">{page.h1}</h1>
+        <p class="text-white fs-5 mb-4" style="opacity:.9;max-width:760px;margin-inline:auto;">{page.intro}</p>
+        {enStock && precio && (
+          <p class="text-white mb-4">
+            <span class="fs-3 fw-bold">{formatARS(precio.transferencia)}</span>
+            <span class="opacity-75"> por transferencia</span>
+            <span class="opacity-50"> · </span>
+            <span class="fw-semibold">{formatARS(precio.tarjeta)}</span>
+            <span class="opacity-75"> con tarjeta</span>
+          </p>
+        )}
+        <div class="d-flex justify-content-center flex-wrap gap-3">
+          <a class="btn btn-light rounded-pill py-3 px-5 fw-semibold" href={`${PRECIO_LIST}#precios`}>Ver lista de precios</a>
+          {compraUrl && (
+            <a class={`btn ${btnClass} rounded-pill py-3 px-5 fw-semibold`} href={compraUrl} target="_blank" rel="noopener"><i class="fas fa-credit-card me-2"></i>Comprar online</a>
+          )}
+          <a class="btn btn-success rounded-pill py-3 px-5 fw-semibold" href={WHATSAPP} target="_blank" rel="noopener"><i class="bi bi-whatsapp me-2"></i>WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intro / Qué es -->
+  <div class="container-fluid product-page py-5">
+    <div class="container">
+      <div class="row g-5 align-items-center">
+        <div class="col-xl-6 wow fadeInLeft">
+          <div class="about-item-content bg-white rounded p-4 p-lg-5 h-100">
+            <h2 class="display-5 fw-bold mb-4">{page.keyword} de {medida.label} para tu {page.pool}</h2>
+            <p class="fs-5 text-muted mb-4">Las mantas o cobertores térmicos son una cubierta de polietileno con burbujas de aire confinado que flota sobre la {page.pool}. Para una {page.pool} de <strong>{medida.label}</strong> ({medida.largo} m de largo por {medida.ancho} m de ancho) el cobertor se entrega listo para ajustarse a la medida exacta.</p>
+            <p class="fs-5 text-muted mb-4">Con <strong>{espesor} micrones</strong> de polietileno virgen y protección UV, es la <strong>manera más económica de calentar o mantener climatizada</strong> tu {page.pool}, funcionando como complemento de cualquier sistema de <a href={CALEFACCION} class="fw-semibold">calefacción de pileta</a>.</p>
+            <p class="fs-5 text-muted mb-0">Sin cobertor, climatizar es como tener el aire acondicionado con las ventanas abiertas: el costo de operación puede ser <strong>hasta 3 veces mayor</strong>.</p>
+          </div>
+        </div>
+        <div class="col-xl-6 wow fadeInRight text-center">
+          <img src={page.sideImg} class="img-fluid rounded-4 shadow" alt={`${page.keyword} ${medida.label} ${espesor} micrones para ${page.pool}`} style="max-height:460px;object-fit:cover;width:100%;" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Beneficios -->
+  <div class="container-fluid py-5" style={`background:linear-gradient(135deg, ${acc} 0%, ${accDark} 100%);`}>
+    <div class="container">
+      <h2 class="display-5 fw-bold text-white text-center mb-5 wow fadeInUp">{page.h2Beneficios}</h2>
+      <div class="row g-4">
+        {beneficios.map((b, idx) => (
+          <div class="col-6 col-md-3 wow fadeInUp" data-wow-delay={`${0.1 + idx * 0.05}s`}>
+            <div class="text-white text-center p-3 h-100">
+              <i class={`fas ${b.icon} fa-3x mb-3 opacity-75`}></i>
+              <h3 class="fw-bold fs-5">{b.t}</h3>
+              <p class="mb-0 opacity-75 small">{b.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Precio -->
+  <div class="container py-5 my-3">
+    <div class="text-center mb-5 wow fadeInUp">
+      <h2 class="display-5 fw-bold mb-3">{page.h2Precio}</h2>
+      <p class="text-muted fs-5 col-lg-8 mx-auto">Precios en Pesos Argentinos · Envío a todo el país · Factura A o B</p>
+    </div>
+    <div class="row justify-content-center g-4">
+      <div class="col-md-7 col-lg-6 wow fadeInUp">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+          <div class="card-header text-white text-center py-4" style={`background:linear-gradient(135deg, ${acc} 0%, ${accDark} 100%);`}>
+            <h3 class="fw-bold mb-1" style="font-size:1.8rem;">{medida.label} · {espesor} micrones</h3>
+            <p class="mb-0" style="opacity:.85;">{esColor ? 'Mayor espesor · Mayor vida útil' : 'Cobertor estándar'}</p>
+          </div>
+          <div class="card-body p-4">
+            {enStock && precio ? (
+              <>
+                <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                  <span class="text-muted"><i class="fas fa-university me-2"></i>Transferencia / Depósito</span>
+                  <span class={`fw-bold fs-4 ${textClass}`}>{formatARS(precio.transferencia)}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                  <span class="text-muted"><i class="fas fa-credit-card me-2"></i>Tarjeta crédito / débito</span>
+                  <span class={`fw-bold fs-4 ${textClass}`}>{formatARS(precio.tarjeta)}</span>
+                </div>
+                <ul class="list-unstyled mt-3 mb-0 text-muted small">
+                  <li class="py-1"><i class={`fas fa-check-circle ${textClass} me-2`}></i>Polietileno virgen con protección UV</li>
+                  <li class="py-1"><i class={`fas fa-check-circle ${textClass} me-2`}></i>Espesor {espesor} micrones</li>
+                  <li class="py-1"><i class={`fas fa-check-circle ${textClass} me-2`}></i>1 año de garantía contra defectos de fabricación</li>
+                </ul>
+              </>
+            ) : (
+              <div class="text-center py-4">
+                <span class="badge bg-secondary rounded-pill px-3 py-2 mb-3">Sin stock temporalmente</span>
+                <p class="text-muted mb-0">Consultá disponibilidad de la medida <strong>{medida.label}</strong> en {espesor} micrones por WhatsApp{otroPrecio ? <>, o mirá esta medida en <a href={`../${otroSlug}/`} class="fw-semibold">{otroEsp} micrones</a></> : null}.</p>
+              </div>
+            )}
+          </div>
+          <div class="card-footer bg-white border-0 p-4 pt-0 d-grid gap-2">
+            {compraUrl ? (
+              <a href={compraUrl} class={`btn ${btnClass} rounded-pill py-2 fw-semibold`} target="_blank" rel="noopener"><i class="fas fa-credit-card me-2"></i>Comprar online con tarjeta</a>
+            ) : (
+              <a href={WHATSAPP} class="btn btn-success rounded-pill py-2 fw-semibold" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-2"></i>Consultar por WhatsApp</a>
+            )}
+            <a href={`${PRECIO_LIST}#precios`} class="btn btn-outline-secondary rounded-pill py-2 fw-semibold">Ver todas las medidas y precios</a>
+          </div>
+        </div>
+        {otroPrecio && (
+          <div class="text-center mt-3">
+            <a href={`../${otroSlug}/`} class="text-decoration-none">
+              ¿Querés esta medida en <strong>{otroEsp} micrones</strong>? Ver cobertor {medida.label} · {otroEsp} µm <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+    <div class="alert border-0 rounded-3 mt-4 py-3 px-4 col-lg-8 mx-auto" style="background:#fff3cd;">
+      <i class="fas fa-truck me-2 text-warning"></i>
+      <strong>Envío:</strong> el precio por transferencia no incluye envío. Al pagar con tarjeta, el envío se calcula según tu localidad.
+    </div>
+  </div>
+
+  <!-- Cómo medir -->
+  <div class="container-fluid py-5" style="background:#f8f9fa;">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6 wow fadeInLeft">
+          <h2 class="display-6 fw-bold mb-4">{page.h2Medir}</h2>
+          <p class="fs-5 text-muted mb-3">Todos los cobertores se entregan en secciones <strong>cuadradas o rectangulares</strong>, preparados para ajustarse a la medida exacta de tu {page.pool}.</p>
+          <p class="fs-5 text-muted mb-4">Para la medida <strong>{medida.label}</strong>, ingresá el <strong>largo y ancho máximo</strong> de la {page.pool}. Siempre medí los valores máximos aunque tenga curvas o formas irregulares.</p>
+          <a class={`btn ${btnClass} rounded-pill py-3 px-5 fw-semibold`} href={CONTACTO}>Consultar medida especial</a>
+        </div>
+        <div class="col-lg-6 wow fadeInRight text-center">
+          <img src="/resources/piscinas.jpg" alt={`Cómo medir una ${page.pool} de ${medida.label} para el cobertor`} class="img-fluid rounded-4 shadow-lg" style="max-width:90%;" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Otras medidas / enlazado interno -->
+  <div class="container py-5 my-3">
+    <div class="text-center mb-4 wow fadeInUp">
+      <h2 class="display-6 fw-bold mb-2">Otras medidas de cobertores {espesor} micrones</h2>
+      <p class="text-muted">¿Tu pileta es de otro tamaño? Mirá otras medidas o la lista de precios completa.</p>
+    </div>
+    <div class="row g-3 justify-content-center">
+      {page.otrasMedidas.map((o) => (
+        <div class="col-6 col-md-3 col-lg-2 wow fadeInUp">
+          <a href={`../${o.slug}/`} class="d-block text-center text-decoration-none border rounded-3 py-3 px-2 h-100 bg-white shadow-sm">
+            <span class="d-block fw-bold" style="font-size:1.1rem;">{o.label}</span>
+            <small class="text-muted">{o.espesor} micrones</small>
+          </a>
+        </div>
+      ))}
+      <div class="col-6 col-md-3 col-lg-2 wow fadeInUp">
+        <a href={PRECIO_LIST} class={`d-block text-center text-decoration-none border rounded-3 py-3 px-2 h-100 text-white shadow-sm`} style={`background:${acc};`}>
+          <span class="d-block fw-bold"><i class="fas fa-list-alt"></i></span>
+          <small>Ver todos los precios</small>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA final -->
+  <div class="container-fluid service py-5" style="background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+    <div class="container py-3">
+      <div class="text-center col-lg-8 mx-auto wow fadeInUp">
+        <h2 class="display-5 fw-bold mb-4">¿Querés calentar tu {page.pool} de {medida.label}?</h2>
+        <p class="fs-5 text-muted mb-5">El cobertor es el mejor complemento de la <a href={CALEFACCION} class="fw-semibold">climatización solar</a> y la <a href={BOMBA} class="fw-semibold">bomba de calor</a>. Consultanos sin compromiso.</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+          <a href={`${PRECIO_LIST}#precios`} class="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-semibold"><i class="fas fa-tag me-2"></i>Ver Precios</a>
+          <a href={CALEFACCION} class="btn btn-outline-dark btn-lg rounded-pill px-5 py-3 fw-semibold"><i class="fas fa-sun me-2"></i>Calefacción de pileta</a>
+          <a href={CONTACTO} class="btn btn-outline-secondary btn-lg rounded-pill px-5 py-3 fw-semibold"><i class="fas fa-envelope me-2"></i>Contacto</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+
+  <Footer />
+</Layout>

@@ -1,0 +1,109 @@
+---
+// Página dinámica para cada artículo del blog
+import { createClient } from '@supabase/supabase-js';
+import { marked } from 'marked';
+
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export async function getStaticPaths() {
+  const { data } = await supabase.from('blog_posts').select('slug');
+  return data.map(post => ({ params: { slug: post.slug } }));
+}
+
+const { slug } = Astro.params;
+const { data, error } = await supabase
+  .from('blog_posts')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+if (error) throw error;
+const post = data;
+const htmlContent = marked.parse(post.contenido);
+---
+<html lang="es">
+  <head>
+    <title>{post.titulo} | Blog SolarPool</title>
+    <meta name="description" content={post.subtitulo} />
+    <meta property="og:title" content={post.titulo} />
+    <meta property="og:description" content={post.subtitulo} />
+    <meta property="og:image" content={post.imagen_destacada_url} />
+    <meta name="author" content={post.autor} />
+    <meta name="date" content={post.fecha_publicacion} />
+    <meta name="keywords" content={post.categoria} />
+    <meta name="robots" content="index, follow" />
+    <script type="application/ld+json">
+      {JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.titulo,
+        description: post.subtitulo,
+        image: post.imagen_destacada_url,
+        author: { '@type': 'Person', name: post.autor },
+        datePublished: post.fecha_publicacion,
+        articleSection: post.categoria,
+        url: `https://www.solarpool.com.ar/blog/${post.slug}`
+      })}
+    </script>
+  </head>
+  <body>
+    <article class="blog-post">
+      <header>
+        <h1>{post.titulo}</h1>
+        <h2 class="subtitulo">{post.subtitulo}</h2>
+        <div class="meta">
+          <span>Por {post.autor}</span> |
+          <span>{new Date(post.fecha_publicacion).toLocaleDateString()}</span> |
+          <span>{post.categoria}</span>
+        </div>
+        <img src={post.imagen_destacada_url} alt={post.titulo} class="destacada" />
+      </header>
+      <section class="contenido" set:html={htmlContent}></section>
+    </article>
+  </body>
+</html>
+
+<style>
+.blog-post {
+  max-width: 800px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px #0001;
+  padding: 2rem;
+}
+.blog-post .destacada {
+  width: 100%;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+.blog-post .meta {
+  color: #888;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+.blog-post .subtitulo {
+  color: #1a7f62;
+  font-size: 1.3rem;
+  margin-top: 0.5rem;
+}
+.contenido {
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: #222;
+}
+.contenido h2, .contenido h3 {
+  margin-top: 2rem;
+  color: #1a7f62;
+}
+.contenido table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+.contenido th, .contenido td {
+  border: 1px solid #ddd;
+  padding: 0.5rem 1rem;
+}
+</style>

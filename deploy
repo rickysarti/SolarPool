@@ -1,0 +1,2 @@
+aws  --profile Solarpool s3 sync  ./dist s3://solarpool/www 
+aws  --profile Solarpool cloudfront create-invalidation --distribution-id E250RGBXRCVIFS --paths '/*'

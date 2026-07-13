@@ -1,0 +1,8 @@
+# robots.txt — Solarpool
+# Se permite el rastreo de todo el sitio.
+
+User-agent: *
+Allow: /
+
+# Sitemap (índice generado automáticamente por Astro)
+Sitemap: https://www.solarpool.com.ar/sitemap-index.xml

@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+<script type="module" src="/js/reviews.js"></script>
+<Layout title="Testimonios">
+        <Header page='Testimonios'/>
+        <!-- Header Start -->
+        <div class="container-fluid page-banner-ventajas-solarpool bg-breadcrumb">
+          <div class="container text-center py-5">
+            <h4
+              class="text-white display-4 mb-4 wow fadeInDown"
+              data-wow-delay="0.1s"
+            >
+              Testimonios
+            </h4>
+          </div>
+        </div>
+        <!-- Header End -->
+        <div class="container-fluid page-banner-testimonios nbg-breadcrumb">
+            <div class="container text-center py-5">
+              <customer-reviews></customer-reviews>
+            </div>
+        </div>
+              
+<Footer></Footer>S
+
+
+</Layout>
