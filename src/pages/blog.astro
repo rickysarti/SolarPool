@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import SupabaseLive from '../components/SupabaseLive.astro';
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseKey = import.meta.env.SUPABASE_KEY;
@@ -22,6 +23,11 @@ try {
 }
 
 const categorias = [...new Set(posts.map((p) => p.categoria))];
+
+// Slugs que tienen página estática en ESTE build. Un post nuevo publicado en
+// Supabase después del deploy no tiene /blog/<slug>/ todavía, así que el
+// listado en vivo lo enlaza a /blog/post/?slug=... hasta el próximo build.
+const slugsPublicados = posts.map((p) => p.slug);
 ---
 
 <Layout title="Blog SolarPool: Artículos y Guías" description="El mejor blog sobre energía solar, climatización de piletas y eficiencia energética en Argentina.">
@@ -65,33 +71,105 @@ const categorias = [...new Set(posts.map((p) => p.categoria))];
       ))}
     </div>
   </section>
-  <script is:inline type="text/javascript">
-    (() => {
-      const filters = document.getElementById('category-filters');
-      const buttons = Array.from(filters.querySelectorAll('button'));
-      const posts = Array.from(document.querySelectorAll('.post-item'));
-      const search = document.getElementById('search');
+  <!-- Listado en vivo: al abrir la página se vuelve a pedir la lista de posts
+       a Supabase, así un artículo nuevo aparece sin recompilar el sitio. -->
+  <SupabaseLive />
+  <script is:inline define:vars={{ SLUGS_PUBLICADOS: slugsPublicados }}>
+    (function () {
+      var filters = document.getElementById('category-filters');
+      var search = document.getElementById('search');
+      var grid = document.getElementById('posts-grid');
 
-      function applyFilter(cat, q) {
-        posts.forEach(p => {
-          const matchesCat = cat === 'all' || p.dataset.cat === cat;
-          const matchesQ = !q || p.dataset.title.includes(q);
-          p.style.display = (matchesCat && matchesQ) ? '' : 'none';
+      function items() {
+        return Array.prototype.slice.call(grid.querySelectorAll('.post-item'));
+      }
+
+      function catActiva() {
+        var b = filters.querySelector('button.active');
+        return b ? b.dataset.cat : 'all';
+      }
+
+      function aplicarFiltro(cat, q) {
+        items().forEach(function (p) {
+          var okCat = cat === 'all' || p.dataset.cat === cat;
+          var okQ = !q || (p.dataset.title || '').indexOf(q) !== -1;
+          p.style.display = (okCat && okQ) ? '' : 'none';
         });
       }
 
-      filters.addEventListener('click', (e) => {
+      function refiltrar() {
+        aplicarFiltro(catActiva(), search.value.trim().toLowerCase());
+      }
+
+      filters.addEventListener('click', function (e) {
         if (e.target.tagName !== 'BUTTON') return;
-        buttons.forEach(b => b.classList.remove('active'));
+        Array.prototype.slice.call(filters.querySelectorAll('button'))
+          .forEach(function (b) { b.classList.remove('active'); });
         e.target.classList.add('active');
-        applyFilter(e.target.dataset.cat, search.value.trim().toLowerCase());
+        refiltrar();
       });
 
-      search.addEventListener('input', (e) => {
-        const q = e.target.value.trim().toLowerCase();
-        const active = filters.querySelector('button.active').dataset.cat || 'all';
-        applyFilter(active, q);
-      });
+      search.addEventListener('input', refiltrar);
+
+      // ----- Refresco en vivo desde Supabase -----
+      var L = window.SolarpoolLive;
+      if (!L || !L.ready()) return;
+
+      function urlPost(post) {
+        // Si el post ya tiene página estática, va ahí (mejor para SEO).
+        // Si es nuevo, lo abre el lector genérico /blog/post/?slug=...
+        return SLUGS_PUBLICADOS.indexOf(post.slug) !== -1
+          ? '/blog/' + encodeURIComponent(post.slug) + '/'
+          : '/blog/post/?slug=' + encodeURIComponent(post.slug);
+      }
+
+      function fecha(v) {
+        if (!v) return '';
+        var d = new Date(v);
+        return isNaN(d) ? '' : d.toLocaleDateString();
+      }
+
+      function tarjeta(post) {
+        var titulo = post.titulo || '';
+        var img = L.safeUrl(post.imagen_destacada_url);
+        return '<div class="col-12 col-md-6 col-lg-4 post-item" data-cat="' + L.esc(post.categoria || '') +
+            '" data-title="' + L.esc(titulo.toLowerCase()) + '">' +
+            '<a href="' + L.esc(urlPost(post)) + '" class="card blog-card h-100 text-decoration-none">' +
+              (img ? '<img src="' + L.esc(img) + '" class="card-img-top" alt="' + L.esc(titulo) + '">' : '') +
+              '<div class="card-body">' +
+                '<h3 class="h5 card-title text-primary">' + L.esc(titulo) + '</h3>' +
+                '<p class="card-text text-dark">' + L.esc(post.resumen || '') + '</p>' +
+              '</div>' +
+              '<div class="card-footer bg-transparent border-0 text-muted small">' +
+                fecha(post.fecha_publicacion) + ' · ' + L.esc(post.autor || '') +
+              '</div>' +
+            '</a></div>';
+      }
+
+      L.select('blog_posts',
+        'select=slug,titulo,resumen,categoria,imagen_destacada_url,fecha_publicacion,autor' +
+        '&estado=eq.publicado&order=fecha_publicacion.desc')
+        .then(function (posts) {
+          if (!posts || !posts.length) return;
+
+          var previa = catActiva();
+          var cats = [];
+          posts.forEach(function (p) {
+            if (p.categoria && cats.indexOf(p.categoria) === -1) cats.push(p.categoria);
+          });
+
+          filters.innerHTML =
+            '<button class="btn btn-primary btn-sm' + (previa === 'all' ? ' active' : '') + '" data-cat="all">Todas</button>' +
+            cats.map(function (c) {
+              return '<button class="btn btn-outline-primary btn-sm' + (previa === c ? ' active' : '') +
+                '" data-cat="' + L.esc(c) + '">' + L.esc(c) + '</button>';
+            }).join('');
+          if (!filters.querySelector('button.active')) filters.querySelector('button').classList.add('active');
+
+          grid.innerHTML = posts.map(tarjeta).join('');
+          refiltrar();
+        })
+        .catch(function (e) { console.warn('[solarpool] blog en vivo no disponible:', e); });
     })();
   </script>
   <Footer />

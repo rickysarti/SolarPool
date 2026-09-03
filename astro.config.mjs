@@ -9,7 +9,9 @@ export default defineConfig({
     sitemap({
       // Excluir páginas internas / scaffolds que no deben indexarse.
       filter: (page) =>
-        !page.includes('/productos/cobertores-solares-termicos/template'),
+        !page.includes('/productos/cobertores-solares-termicos/template') &&
+        // Lector genérico de posts nuevos: no se indexa, cada post tiene su URL propia.
+        !page.includes('/blog/post'),
       changefreq: 'weekly',
       lastmod: new Date(),
       // Prioridades y frecuencia por tipo de página.

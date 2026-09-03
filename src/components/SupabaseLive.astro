@@ -1,0 +1,15 @@
+---
+/**
+ * Inyecta la configuración pública de Supabase (URL + anon key) y el helper
+ * /js/solarpool-live.js, para que la página pueda refrescar sus datos en vivo
+ * sin recompilar el sitio.
+ *
+ * Incluir en cualquier página que lea datos de Supabase en el navegador.
+ */
+const url = import.meta.env.SUPABASE_URL ?? '';
+const key = import.meta.env.SUPABASE_KEY ?? '';
+---
+<script is:inline define:vars={{ url, key }}>
+  window.__SB__ = { url: url, key: key };
+</script>
+<script is:inline src="/js/solarpool-live.js"></script>

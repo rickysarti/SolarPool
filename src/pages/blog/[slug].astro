@@ -4,6 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { blogService } from '../../lib/supabase/blog-service';
+import SupabaseLive from '../../components/SupabaseLive.astro';
 
 export async function getStaticPaths() {
   const slugs = await blogService.getAllPublishedSlugs();
@@ -31,10 +32,10 @@ htmlContent = String(htmlContent).replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi
 ---
 <Layout title={`${article.titulo} | Blog SolarPool`} description={article.subtitulo}>
   <Header page="blog" />
-  <article class="blog-post container">
+  <article class="blog-post container" id="live-post" data-slug={slug}>
     <header class="py-4">
-      <h1 class="display-6">{article.titulo}</h1>
-      <h2 class="subtitulo">{article.subtitulo}</h2>
+      <h1 class="display-6" id="live-post-titulo">{article.titulo}</h1>
+      <h2 class="subtitulo" id="live-post-subtitulo">{article.subtitulo}</h2>
       <meta property="og:title" content={article.titulo} />
       <meta property="og:description" content={article.subtitulo || article.resumen} />
       <meta property="og:image" content={article.imagen_destacada_url} />
@@ -55,23 +56,40 @@ htmlContent = String(htmlContent).replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi
           url: `https://www.solarpool.com.ar/blog/${article.slug}`
         })}
       </script>
-      <div class="meta text-muted small">
+      <div class="meta text-muted small" id="live-post-meta">
         <span>Por {article.autor}</span> ·
         <span class="mx-2">{new Date(article.fecha_publicacion).toLocaleDateString()}</span> ·
         <span>{article.categoria}</span>
       </div>
-      {article.imagen_destacada_url && (
-        <img 
-          loading="lazy" 
-          src={article.imagen_destacada_url}
-          alt={article.titulo} 
-          class="img-fluid rounded destacada my-3" 
-        />
-      )}
+      <div id="live-post-img">
+        {article.imagen_destacada_url && (
+          <img 
+            loading="lazy" 
+            src={article.imagen_destacada_url}
+            alt={article.titulo} 
+            class="img-fluid rounded destacada my-3" 
+          />
+        )}
+      </div>
     </header>
 
-    <section class="contenido" set:html={htmlContent}></section>
+    <section class="contenido" id="live-post-contenido" set:html={htmlContent}></section>
   </article>
+
+  <!-- Refresco en vivo: si el post se editó en Supabase después del último
+       deploy, se actualiza al abrir la página. -->
+  <SupabaseLive />
+  <script>
+    import { traerPost, pintarPost, hayConexion } from '../../lib/blog-live';
+
+    const root = document.getElementById('live-post');
+    if (root && hayConexion()) {
+      traerPost(root.dataset.slug || '')
+        .then((post) => { if (post) pintarPost(post); })
+        .catch((e) => console.warn('[solarpool] post en vivo no disponible:', e));
+    }
+  </script>
+
   <Footer />
 </Layout>
 

@@ -1144,10 +1144,6 @@ a {
     background: var(--rgo-white);
     border-top: 1px solid rgba(255, 255, 255, .08);
 }
-.copyright .raghio img {
-    width: auto;
-    height: 24px;
-}
 /*** copyright end ***/
 
 

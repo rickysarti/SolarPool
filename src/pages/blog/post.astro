@@ -1,0 +1,117 @@
+---
+// Lector genérico de artículos: /blog/post/?slug=...
+//
+// El sitio es estático, así que un post publicado en Supabase DESPUÉS del
+// último deploy todavía no tiene su página /blog/<slug>/. Esta página lo
+// muestra igual, leyéndolo del navegador. En el próximo build el post pasa a
+// tener su URL propia (mejor para SEO) y el listado ya enlaza directo ahí.
+// Por eso va con noindex: el contenido indexable es /blog/<slug>/.
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import SupabaseLive from '../../components/SupabaseLive.astro';
+---
+<Layout
+  title="Artículo | Blog SolarPool"
+  description="Artículo del blog de SolarPool sobre energía solar, climatización de piletas y eficiencia energética."
+  noindex>
+  <Header page="blog" />
+
+  <article class="blog-post container" id="live-post">
+    <header class="py-4">
+      <h1 class="display-6" id="live-post-titulo">Cargando artículo…</h1>
+      <h2 class="subtitulo" id="live-post-subtitulo" style="display:none;"></h2>
+      <div class="meta text-muted small" id="live-post-meta"></div>
+      <div id="live-post-img"></div>
+    </header>
+
+    <section class="contenido" id="live-post-contenido"></section>
+
+    <div id="live-post-error" class="alert alert-warning" style="display:none;">
+      No pudimos encontrar ese artículo. <a href="/blog/">Volver al blog</a>.
+    </div>
+  </article>
+
+  <SupabaseLive />
+  <script>
+    import { traerPost, pintarPost, hayConexion } from '../../lib/blog-live';
+
+    const slug = new URLSearchParams(window.location.search).get('slug') || '';
+    const titulo = document.getElementById('live-post-titulo');
+    const error = document.getElementById('live-post-error');
+
+    function fallar() {
+      if (titulo) titulo.textContent = 'Artículo no disponible';
+      if (error) error.style.display = '';
+    }
+
+    if (!slug || !hayConexion()) {
+      fallar();
+    } else {
+      traerPost(slug)
+        .then((post) => {
+          if (!post) return fallar();
+          pintarPost(post);
+          document.title = post.titulo + ' | Blog SolarPool';
+          // Canonical hacia la URL definitiva del post.
+          const canonical = document.querySelector('link[rel="canonical"]');
+          if (canonical) {
+            canonical.setAttribute(
+              'href',
+              'https://www.solarpool.com.ar/blog/' + encodeURIComponent(post.slug) + '/'
+            );
+          }
+        })
+        .catch((e) => {
+          console.warn('[solarpool] no pude cargar el post:', e);
+          fallar();
+        });
+    }
+  </script>
+
+  <Footer />
+</Layout>
+
+<style>
+.blog-post {
+  max-width: 900px;
+  margin: 3rem auto;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  color: #0b2130;
+}
+.blog-post .destacada {
+  width: 100%;
+  border-radius: 6px;
+  margin: 1rem 0;
+}
+.blog-post .meta {
+  color: #4a5568;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+.blog-post .subtitulo {
+  color: #154a7a; /* azul similar al sitio */
+  font-size: 1.25rem;
+  margin-top: 0.25rem;
+}
+.contenido {
+  font-size: 1.06rem;
+  line-height: 1.8;
+  color: #0b2130;
+}
+.contenido h2, .contenido h3 {
+  margin-top: 2rem;
+  color: #0b6fb2; /* acento celeste/azul */
+}
+.contenido table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+.contenido th, .contenido td {
+  border: 1px solid #ddd;
+  padding: 0.5rem 1rem;
+}
+</style>

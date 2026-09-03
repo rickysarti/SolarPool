@@ -2,9 +2,34 @@
 import Layout from "../../../layouts/Layout.astro";
 import Header from "../../../components/Header.astro";
 import Footer from "../../../components/Footer.astro";
-import { medidas, formatARS, mpUrl, WHATSAPP, slugMedida } from "../../../lib/cobertores.ts";
+import SupabaseLive from "../../../components/SupabaseLive.astro";
+import { medidas, formatARS, WHATSAPP, slugMedida, type Espesor } from "../../../lib/cobertores.ts";
+import { getPreciosLive, resolverPrecio, urlCompra } from "../../../lib/cobertores-precios";
 
 const MEDIDAS_BASE = "/productos/cobertores-solares-termicos/medidas";
+
+// Precios, stock y links de pago desde Supabase ("solarpool-cobertores").
+// Si Supabase no responde, caen los valores históricos de cobertores.ts.
+const preciosLive = await getPreciosLive();
+
+const filasDe = (esp: Espesor) =>
+  medidas.map((m) => ({
+    key: m.key,
+    label: m.label,
+    slug: slugMedida(m, esp),
+    precio: resolverPrecio(preciosLive, m.key, esp, esp === 300 ? m.p300 : m.p400),
+  }));
+
+const filas300 = filasDe(300);
+const filas400 = filasDe(400);
+
+// medida|espesor -> slug de la subpágina generada en ESTE build. El script en
+// vivo sólo enlaza las medidas que ya tienen página; una medida nueva cargada
+// en Supabase aparece en la tabla pero sin link hasta el próximo deploy.
+const slugsPorClave: Record<string, string> = {};
+for (const esp of [300, 400] as Espesor[]) {
+  for (const m of medidas) slugsPorClave[`${m.key}|${esp}`] = slugMedida(m, esp);
+}
 ---
 
 <Layout title="Precios Cobertores Solares Térmicos 2026 | Solarpool" description="Lista de precios actualizada de cobertores solares térmicos para piletas. 300 y 400 micrones, todas las medidas. Transferencia o tarjeta. Envío a todo el país.">
@@ -125,35 +150,31 @@ const MEDIDAS_BASE = "/productos/cobertores-solares-termicos/medidas";
                 <th class="text-white text-center py-4 fw-semibold" style="width:12%;">Online</th>
               </tr>
             </thead>
-            <tbody>
-              {medidas.map((m) => {
-                const p = m.p300;
-                const url = `${MEDIDAS_BASE}/${slugMedida(m, 300)}/`;
-                return (
-                  <tr>
-                    <td class="text-center fw-bold py-3" style="font-size:1.1rem;">
-                      <a href={url} class="text-decoration-none text-dark d-inline-flex align-items-center">
-                        {m.label}<i class="fas fa-angle-right ms-2 text-primary small"></i>
-                      </a>
-                    </td>
-                    {p ? (
-                      <>
-                        <td class="text-center py-3 fw-semibold fs-5 text-primary">{formatARS(p.transferencia)}</td>
-                        <td class="text-center py-3 fw-semibold fs-5 text-primary">{formatARS(p.tarjeta)}</td>
-                        <td class="text-center py-3">
-                          <a href={p.mp ? mpUrl(p.mp) : WHATSAPP} class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold" target="_blank" rel="noopener">
-                            <i class="fas fa-credit-card me-1"></i> Comprar
-                          </a>
-                        </td>
-                      </>
-                    ) : (
-                      <td class="text-center py-3 fw-semibold fs-5 text-secondary" colspan="3">
-                        <span class="badge bg-secondary rounded-pill px-3 py-2">SIN STOCK</span>
+            <tbody id="tbody-300">
+              {filas300.map((f) => (
+                <tr data-medida={f.key} data-espesor="300">
+                  <td class="text-center fw-bold py-3" style="font-size:1.1rem;">
+                    <a href={`${MEDIDAS_BASE}/${f.slug}/`} class="text-decoration-none text-dark d-inline-flex align-items-center">
+                      {f.label}<i class="fas fa-angle-right ms-2 text-primary small"></i>
+                    </a>
+                  </td>
+                  {f.precio ? (
+                    <>
+                      <td class="text-center py-3 fw-semibold fs-5 text-primary">{formatARS(f.precio.transferencia)}</td>
+                      <td class="text-center py-3 fw-semibold fs-5 text-primary">{formatARS(f.precio.tarjeta)}</td>
+                      <td class="text-center py-3">
+                        <a href={urlCompra(f.precio)} class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold" target="_blank" rel="noopener">
+                          <i class="fas fa-credit-card me-1"></i> Comprar
+                        </a>
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
+                    </>
+                  ) : (
+                    <td class="text-center py-3 fw-semibold fs-5 text-secondary" colspan="3">
+                      <span class="badge bg-secondary rounded-pill px-3 py-2">SIN STOCK</span>
+                    </td>
+                  )}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -177,35 +198,31 @@ const MEDIDAS_BASE = "/productos/cobertores-solares-termicos/medidas";
                 <th class="text-white text-center py-4 fw-semibold" style="width:12%;">Online</th>
               </tr>
             </thead>
-            <tbody>
-              {medidas.map((m) => {
-                const p = m.p400;
-                const url = `${MEDIDAS_BASE}/${slugMedida(m, 400)}/`;
-                return (
-                  <tr>
-                    <td class="text-center fw-bold py-3" style="font-size:1.1rem;">
-                      <a href={url} class="text-decoration-none text-dark d-inline-flex align-items-center">
-                        {m.label}<i class="fas fa-angle-right ms-2 text-success small"></i>
-                      </a>
-                    </td>
-                    {p ? (
-                      <>
-                        <td class="text-center py-3 fw-semibold fs-5 text-success">{formatARS(p.transferencia)}</td>
-                        <td class="text-center py-3 fw-semibold fs-5 text-success">{formatARS(p.tarjeta)}</td>
-                        <td class="text-center py-3">
-                          <a href={p.mp ? mpUrl(p.mp) : WHATSAPP} class="btn btn-success btn-sm rounded-pill px-3 fw-semibold" target="_blank" rel="noopener">
-                            <i class="fas fa-credit-card me-1"></i> Comprar
-                          </a>
-                        </td>
-                      </>
-                    ) : (
-                      <td class="text-center py-3 fw-semibold fs-5 text-secondary" colspan="3">
-                        <span class="badge bg-secondary rounded-pill px-3 py-2">SIN STOCK</span>
+            <tbody id="tbody-400">
+              {filas400.map((f) => (
+                <tr data-medida={f.key} data-espesor="400">
+                  <td class="text-center fw-bold py-3" style="font-size:1.1rem;">
+                    <a href={`${MEDIDAS_BASE}/${f.slug}/`} class="text-decoration-none text-dark d-inline-flex align-items-center">
+                      {f.label}<i class="fas fa-angle-right ms-2 text-success small"></i>
+                    </a>
+                  </td>
+                  {f.precio ? (
+                    <>
+                      <td class="text-center py-3 fw-semibold fs-5 text-success">{formatARS(f.precio.transferencia)}</td>
+                      <td class="text-center py-3 fw-semibold fs-5 text-success">{formatARS(f.precio.tarjeta)}</td>
+                      <td class="text-center py-3">
+                        <a href={urlCompra(f.precio)} class="btn btn-success btn-sm rounded-pill px-3 fw-semibold" target="_blank" rel="noopener">
+                          <i class="fas fa-credit-card me-1"></i> Comprar
+                        </a>
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
+                    </>
+                  ) : (
+                    <td class="text-center py-3 fw-semibold fs-5 text-secondary" colspan="3">
+                      <span class="badge bg-secondary rounded-pill px-3 py-2">SIN STOCK</span>
+                    </td>
+                  )}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -323,6 +340,58 @@ const MEDIDAS_BASE = "/productos/cobertores-solares-termicos/medidas";
         b300.style.boxShadow = 'none';
       }
     }
+  </script>
+
+  <!-- Precios en vivo: vuelve a pedirle la tabla a Supabase al cargar la página,
+       así los cambios de precio/stock/link se ven sin recompilar el sitio. -->
+  <SupabaseLive />
+  <script is:inline define:vars={{ BASE: MEDIDAS_BASE, SLUGS: slugsPorClave }}>
+    (function () {
+      var L = window.SolarpoolLive;
+      if (!L || !L.ready()) return;
+
+      function fila(r, esp, tema) {
+        var slug = SLUGS[r.medida_key + '|' + esp];
+        var label = L.esc(r.label);
+        var nombre = slug
+          ? '<a href="' + L.esc(BASE + '/' + slug + '/') + '" class="text-decoration-none text-dark d-inline-flex align-items-center">' +
+            label + '<i class="fas fa-angle-right ms-2 ' + tema.text + ' small"></i></a>'
+          : label;
+
+        var celdas;
+        if (r.en_stock && r.precio_transferencia !== null) {
+          var url = L.safeUrl(r.link_pago) || L.WHATSAPP;
+          var tarjeta = r.precio_tarjeta !== null ? r.precio_tarjeta : r.precio_transferencia;
+          celdas =
+            '<td class="text-center py-3 fw-semibold fs-5 ' + tema.text + '">' + L.formatARS(r.precio_transferencia) + '</td>' +
+            '<td class="text-center py-3 fw-semibold fs-5 ' + tema.text + '">' + L.formatARS(tarjeta) + '</td>' +
+            '<td class="text-center py-3"><a href="' + L.esc(url) + '" class="btn ' + tema.btn +
+            ' btn-sm rounded-pill px-3 fw-semibold" target="_blank" rel="noopener">' +
+            '<i class="fas fa-credit-card me-1"></i> Comprar</a></td>';
+        } else {
+          celdas = '<td class="text-center py-3 fw-semibold fs-5 text-secondary" colspan="3">' +
+            '<span class="badge bg-secondary rounded-pill px-3 py-2">SIN STOCK</span></td>';
+        }
+
+        return '<tr data-medida="' + L.esc(r.medida_key) + '" data-espesor="' + esp + '">' +
+          '<td class="text-center fw-bold py-3" style="font-size:1.1rem;">' + nombre + '</td>' + celdas + '</tr>';
+      }
+
+      L.select('solarpool-cobertores', 'select=*&activo=eq.true&order=orden.asc,espesor.asc')
+        .then(function (filas) {
+          [300, 400].forEach(function (esp) {
+            var tbody = document.getElementById('tbody-' + esp);
+            if (!tbody) return;
+            var delEspesor = filas.filter(function (r) { return Number(r.espesor) === esp; });
+            if (!delEspesor.length) return;
+            var tema = esp === 400
+              ? { text: 'text-success', btn: 'btn-success' }
+              : { text: 'text-primary', btn: 'btn-primary' };
+            tbody.innerHTML = delEspesor.map(function (r) { return fila(r, esp, tema); }).join('');
+          });
+        })
+        .catch(function (e) { console.warn('[solarpool] precios en vivo no disponibles:', e); });
+    })();
   </script>
 
   <Footer />

@@ -2,14 +2,16 @@
 import Layout from '../../../../layouts/Layout.astro';
 import Header from '../../../../components/Header.astro';
 import Footer from '../../../../components/Footer.astro';
+import SupabaseLive from '../../../../components/SupabaseLive.astro';
 import {
   cobertores,
   formatARS,
-  mpUrl,
   WHATSAPP,
   slugMedida,
   type CobertorPagina,
+  type Espesor,
 } from '../../../../lib/cobertores.ts';
+import { getPreciosLive, resolverPrecio } from '../../../../lib/cobertores-precios';
 
 export function getStaticPaths() {
   return cobertores.map((page) => ({
@@ -19,7 +21,13 @@ export function getStaticPaths() {
 }
 
 const { page } = Astro.props as { page: CobertorPagina };
-const { medida, espesor, precio, enStock } = page;
+const { medida, espesor } = page;
+
+// Precio, stock y link de pago desde Supabase ("solarpool-cobertores").
+// Si la fila no existe o Supabase falla, se usa el valor de cobertores.ts.
+const preciosLive = await getPreciosLive();
+const precio = resolverPrecio(preciosLive, medida.key, espesor, page.precio);
+const enStock = precio !== null;
 
 const PRECIO_LIST = '/productos/cobertores-solares-termicos/precio';
 const CALEFACCION = '/productos/calefaccion-solar/';
@@ -27,8 +35,13 @@ const BOMBA = '/productos/bomba-de-calor/';
 const CONTACTO = '/contacto/';
 
 // Espesor alternativo (para cross-sell entre las 300 y 400 de la misma medida)
-const otroEsp = espesor === 300 ? 400 : 300;
-const otroPrecio = otroEsp === 300 ? medida.p300 : medida.p400;
+const otroEsp: Espesor = espesor === 300 ? 400 : 300;
+const otroPrecio = resolverPrecio(
+  preciosLive,
+  medida.key,
+  otroEsp,
+  otroEsp === 300 ? medida.p300 : medida.p400
+);
 const otroSlug = slugMedida(medida, otroEsp);
 
 const esColor = espesor === 400;
@@ -38,7 +51,7 @@ const btnClass = esColor ? 'btn-success' : 'btn-primary';
 const textClass = esColor ? 'text-success' : 'text-primary';
 
 // Botón de compra online
-const compraUrl = enStock && precio?.mp ? mpUrl(precio.mp) : null;
+const compraUrl = precio?.url ?? null;
 
 // JSON-LD Product para rich results en Google
 const jsonLd = {
@@ -94,20 +107,24 @@ const beneficios = [
         </div>
         <h1 class="display-2 text-white fw-bold mb-3">{page.h1}</h1>
         <p class="text-white fs-5 mb-4" style="opacity:.9;max-width:760px;margin-inline:auto;">{page.intro}</p>
-        {enStock && precio && (
-          <p class="text-white mb-4">
-            <span class="fs-3 fw-bold">{formatARS(precio.transferencia)}</span>
-            <span class="opacity-75"> por transferencia</span>
-            <span class="opacity-50"> · </span>
-            <span class="fw-semibold">{formatARS(precio.tarjeta)}</span>
-            <span class="opacity-75"> con tarjeta</span>
-          </p>
-        )}
+        <p class="text-white mb-4" id="live-hero-precio">
+          {enStock && precio && (
+            <>
+              <span class="fs-3 fw-bold">{formatARS(precio.transferencia)}</span>
+              <span class="opacity-75"> por transferencia</span>
+              <span class="opacity-50"> · </span>
+              <span class="fw-semibold">{formatARS(precio.tarjeta)}</span>
+              <span class="opacity-75"> con tarjeta</span>
+            </>
+          )}
+        </p>
         <div class="d-flex justify-content-center flex-wrap gap-3">
           <a class="btn btn-light rounded-pill py-3 px-5 fw-semibold" href={`${PRECIO_LIST}#precios`}>Ver lista de precios</a>
-          {compraUrl && (
-            <a class={`btn ${btnClass} rounded-pill py-3 px-5 fw-semibold`} href={compraUrl} target="_blank" rel="noopener"><i class="fas fa-credit-card me-2"></i>Comprar online</a>
-          )}
+          <span id="live-hero-compra">
+            {compraUrl && (
+              <a class={`btn ${btnClass} rounded-pill py-3 px-5 fw-semibold`} href={compraUrl} target="_blank" rel="noopener"><i class="fas fa-credit-card me-2"></i>Comprar online</a>
+            )}
+          </span>
           <a class="btn btn-success rounded-pill py-3 px-5 fw-semibold" href={WHATSAPP} target="_blank" rel="noopener"><i class="bi bi-whatsapp me-2"></i>WhatsApp</a>
         </div>
       </div>
@@ -164,7 +181,7 @@ const beneficios = [
             <h3 class="fw-bold mb-1" style="font-size:1.8rem;">{medida.label} · {espesor} micrones</h3>
             <p class="mb-0" style="opacity:.85;">{esColor ? 'Mayor espesor · Mayor vida útil' : 'Cobertor estándar'}</p>
           </div>
-          <div class="card-body p-4">
+          <div class="card-body p-4" id="live-card-body">
             {enStock && precio ? (
               <>
                 <div class="d-flex justify-content-between align-items-center border-bottom py-3">
@@ -188,7 +205,7 @@ const beneficios = [
               </div>
             )}
           </div>
-          <div class="card-footer bg-white border-0 p-4 pt-0 d-grid gap-2">
+          <div class="card-footer bg-white border-0 p-4 pt-0 d-grid gap-2" id="live-card-footer">
             {compraUrl ? (
               <a href={compraUrl} class={`btn ${btnClass} rounded-pill py-2 fw-semibold`} target="_blank" rel="noopener"><i class="fas fa-credit-card me-2"></i>Comprar online con tarjeta</a>
             ) : (
@@ -269,6 +286,103 @@ const beneficios = [
   </div>
 
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+
+  <!-- Precio en vivo desde Supabase: al cargar la página se vuelve a consultar
+       la tabla, así un cambio de precio/stock/link se ve sin recompilar. -->
+  <SupabaseLive />
+  <script
+    is:inline
+    define:vars={{
+      MEDIDA_KEY: medida.key,
+      ESPESOR: espesor,
+      LABEL: medida.label,
+      TEXT_CLASS: textClass,
+      BTN_CLASS: btnClass,
+      OTRO_ESP: otroEsp,
+      OTRO_SLUG: otroSlug,
+    }}>
+    (function () {
+      var L = window.SolarpoolLive;
+      if (!L || !L.ready()) return;
+
+      function conStock(r) {
+        return !!(r && r.en_stock && r.precio_transferencia !== null);
+      }
+
+      function heroPrecio(r) {
+        if (!conStock(r)) return '';
+        var tarjeta = r.precio_tarjeta !== null ? r.precio_tarjeta : r.precio_transferencia;
+        return '<span class="fs-3 fw-bold">' + L.formatARS(r.precio_transferencia) + '</span>' +
+          '<span class="opacity-75"> por transferencia</span>' +
+          '<span class="opacity-50"> · </span>' +
+          '<span class="fw-semibold">' + L.formatARS(tarjeta) + '</span>' +
+          '<span class="opacity-75"> con tarjeta</span>';
+      }
+
+      function heroCompra(r) {
+        var url = conStock(r) ? L.safeUrl(r.link_pago) : null;
+        if (!url) return '';
+        return '<a class="btn ' + BTN_CLASS + ' rounded-pill py-3 px-5 fw-semibold" href="' + L.esc(url) +
+          '" target="_blank" rel="noopener"><i class="fas fa-credit-card me-2"></i>Comprar online</a>';
+      }
+
+      function cardBody(r, otro) {
+        if (conStock(r)) {
+          var tarjeta = r.precio_tarjeta !== null ? r.precio_tarjeta : r.precio_transferencia;
+          return '' +
+            '<div class="d-flex justify-content-between align-items-center border-bottom py-3">' +
+              '<span class="text-muted"><i class="fas fa-university me-2"></i>Transferencia / Depósito</span>' +
+              '<span class="fw-bold fs-4 ' + TEXT_CLASS + '">' + L.formatARS(r.precio_transferencia) + '</span>' +
+            '</div>' +
+            '<div class="d-flex justify-content-between align-items-center border-bottom py-3">' +
+              '<span class="text-muted"><i class="fas fa-credit-card me-2"></i>Tarjeta crédito / débito</span>' +
+              '<span class="fw-bold fs-4 ' + TEXT_CLASS + '">' + L.formatARS(tarjeta) + '</span>' +
+            '</div>' +
+            '<ul class="list-unstyled mt-3 mb-0 text-muted small">' +
+              '<li class="py-1"><i class="fas fa-check-circle ' + TEXT_CLASS + ' me-2"></i>Polietileno virgen con protección UV</li>' +
+              '<li class="py-1"><i class="fas fa-check-circle ' + TEXT_CLASS + ' me-2"></i>Espesor ' + ESPESOR + ' micrones</li>' +
+              '<li class="py-1"><i class="fas fa-check-circle ' + TEXT_CLASS + ' me-2"></i>1 año de garantía contra defectos de fabricación</li>' +
+            '</ul>';
+        }
+        var cross = conStock(otro)
+          ? ', o mirá esta medida en <a href="../' + L.esc(OTRO_SLUG) + '/" class="fw-semibold">' + OTRO_ESP + ' micrones</a>'
+          : '';
+        return '<div class="text-center py-4">' +
+          '<span class="badge bg-secondary rounded-pill px-3 py-2 mb-3">Sin stock temporalmente</span>' +
+          '<p class="text-muted mb-0">Consultá disponibilidad de la medida <strong>' + L.esc(LABEL) +
+          '</strong> en ' + ESPESOR + ' micrones por WhatsApp' + cross + '.</p></div>';
+      }
+
+      function cardFooter(r) {
+        var url = conStock(r) ? L.safeUrl(r.link_pago) : null;
+        var principal = url
+          ? '<a href="' + L.esc(url) + '" class="btn ' + BTN_CLASS + ' rounded-pill py-2 fw-semibold" target="_blank" rel="noopener">' +
+            '<i class="fas fa-credit-card me-2"></i>Comprar online con tarjeta</a>'
+          : '<a href="' + L.esc(L.WHATSAPP) + '" class="btn btn-success rounded-pill py-2 fw-semibold" target="_blank" rel="noopener">' +
+            '<i class="bi bi-whatsapp me-2"></i>Consultar por WhatsApp</a>';
+        return principal +
+          '<a href="/productos/cobertores-solares-termicos/precio#precios" class="btn btn-outline-secondary rounded-pill py-2 fw-semibold">' +
+          'Ver todas las medidas y precios</a>';
+      }
+
+      function pintar(id, html) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+      }
+
+      L.select('solarpool-cobertores', 'select=*&activo=eq.true&medida_key=eq.' + encodeURIComponent(MEDIDA_KEY))
+        .then(function (filas) {
+          var esta = filas.filter(function (x) { return Number(x.espesor) === Number(ESPESOR); })[0];
+          var otra = filas.filter(function (x) { return Number(x.espesor) === Number(OTRO_ESP); })[0];
+          if (!esta) return; // sin fila en Supabase: se deja lo que armó el build
+          pintar('live-hero-precio', heroPrecio(esta));
+          pintar('live-hero-compra', heroCompra(esta));
+          pintar('live-card-body', cardBody(esta, otra));
+          pintar('live-card-footer', cardFooter(esta));
+        })
+        .catch(function (e) { console.warn('[solarpool] precio en vivo no disponible:', e); });
+    })();
+  </script>
 
   <Footer />
 </Layout>

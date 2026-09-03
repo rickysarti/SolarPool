@@ -1,2 +1,10 @@
-aws  --profile Solarpool s3 sync  ./dist s3://solarpool/www 
-aws  --profile Solarpool cloudfront create-invalidation --distribution-id E250RGBXRCVIFS --paths '/*'
+#!/bin/sh
+# Deploy del sitio: sube ./dist a S3 e invalida la caché de CloudFront.
+# Equivalente al viejo deploy.bat de Windows.
+#
+# El AWS CLI está instalado a nivel usuario (pip install --user awscli) y el
+# perfil "ricky" vive en ~/.aws/credentials.
+export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+
+aws --profile ricky s3 sync ./dist s3://solarpool/www
+aws --profile ricky cloudfront create-invalidation --distribution-id E250RGBXRCVIFS --paths '/*'
